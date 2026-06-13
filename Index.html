@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arun AI</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #0f0f1a; color: white; height: 100vh; display: flex; flex-direction: column; }
+#header { background: #1a1a2e; padding: 15px; text-align: center; font-size: 22px; font-weight: bold; color: #7c6af7; }
+#chatbox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; line-height: 1.5; }
+.user { background: #7c6af7; align-self: flex-end; }
+.ai { background: #1a1a2e; align-self: flex-start; }
+#inputarea { display: flex; padding: 10px; background: #1a1a2e; gap: 10px; }
+#userinput { flex: 1; padding: 10px; border-radius: 20px; border: none; background: #2a2a3e; color: white; font-size: 16px; }
+#sendbtn { background: #7c6af7; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="header">🤖 Arun AI</div>
+<div id="chatbox">
+  <div class="msg ai">Namaste! Main Arun AI hoon. Aap mujhse kuch bhi pooch sakte hain! 😊</div>
+</div>
+<div id="inputarea">
+  <input id="userinput" type="text" placeholder="Kuch bhi poochho..." />
+  <button id="sendbtn">Send</button>
+</div>
+<script>
+const API_KEY = "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";
+const chatbox = document.getElementById("chatbox");
+const userinput = document.getElementById("userinput");
+
+document.getElementById("sendbtn").onclick = sendMessage;
+userinput.addEventListener("keypress", e => { if(e.key === "Enter") sendMessage(); });
+
+async function sendMessage() {
+  const msg = userinput.value.trim();
+  if(!msg) return;
+  addMsg(msg, "user");
+  userinput.value = "";
+  addMsg("Soch raha hoon...", "ai");
+  
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://stackblitz.com",
+        "X-Title": "Arun AI"
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3.1-8b-instruct:free",
+        messages: [
+          { role: "system", content: "You are Arun AI, a helpful assistant. Answer in the same language the user writes in." },
+          { role: "user", content: msg }
+        ]
+      })
+    });
+    const data = await res.json();
+    chatbox.lastChild.remove();
+    addMsg(data.choices[0].message.content, "ai");
+  } catch(e) {
+    chatbox.lastChild.remove();
+    addMsg("Kuch galat hua, dobara try karo!", "ai");
+  }
+}
+
+function addMsg(text, type) {
+  const div = document.createElement("div");
+  div.className = `msg ${type}`;
+  div.textContent = text;
+  chatbox.appendChild(div);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+</script>
+</body>
+</html>
